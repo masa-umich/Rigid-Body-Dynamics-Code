@@ -1,4 +1,3 @@
-% function [t, p, rho, a] = atmosphere(height, unit)
 % Richard Rieber
 % rrieber@gmail.com
 % Updated 3/17/2006
@@ -144,6 +143,15 @@ TNew = T0;
 PNew = P0*exp(-(g/(R*TNew))*(Z1-Z0));
 % RhoNew = Rho0*exp(-(g/(R*TNew))*(Z1-Z0));
 RhoNew = PNew/(R*TNew);
+
+
+
+
+
+
+
+
+
 
 
 
