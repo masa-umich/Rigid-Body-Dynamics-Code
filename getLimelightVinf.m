@@ -1,4 +1,4 @@
-function [vinf, vinf_vec, alpha] = getVinf(state, percentage)
+function [vinf, vinf_vec, alpha] = getLimelightVinf(state, percentage)
 %{
 This function gets the total velocity vector magnitude and angle of attack
 in respect to the vehicle based on the state vector that is given.
@@ -7,9 +7,9 @@ in respect to the vehicle based on the state vector that is given.
     % get wind speed
     vw = getVw(state, percentage);
 
-    u = state(4);
-    w = state(5);
-    theta = state(3);
+    u = state(3);
+    w = -state(4);
+    theta = state(6);
 
     vinf = sqrt( (u - vw)^2 + (w)^2 );
 
@@ -21,4 +21,3 @@ in respect to the vehicle based on the state vector that is given.
     arg = max(min(arg, 1), -1);   % clamp to [-1,1]
     alpha = acos(arg);
 end
-

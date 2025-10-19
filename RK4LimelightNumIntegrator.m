@@ -32,7 +32,7 @@ state0 = [xp, zp, u, w, q, theta];
 state = state0;
 
 %Time after appogee recovery bay is deployed
-timeAfterAppogee = 15; %(s)
+timeAfterAppogee = 2; %(s)
 
 %Integrating for freefall
 
@@ -41,14 +41,14 @@ time(i,1) = t;
 
 %freefall
 while state(end,2) < farAlt
-    dt = 0.01;
+    dt = 0.1;
     state(i+1,:) = RK4Solver(state(i,:),dt,percentage,mass,Iyy);
     t = t+dt;
     i = i+1;
     time(i,1) = t;
 end
 
-plot(time(1:end),-state(1:end,2));
+plot(time(1:end-10),-state(1:end-10,2));
 ylabel('Altitude (m)')
 xlabel('Time (s)')
 title('Altitude vs Time')

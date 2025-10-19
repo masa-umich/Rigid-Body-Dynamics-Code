@@ -8,3 +8,6 @@ function [updatedState] = RK4Solver(state,dt, percentage, mass, Iyy)
     
     updatedState = state + (dt/6)*(f0 + 2*f1 + 2*f2 + f3);
 end
+
+
+
