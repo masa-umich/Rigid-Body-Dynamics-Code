@@ -1,4 +1,4 @@
-function newState = getstate_btail(state)
+function newState = getstate_btail(state, percentage)
 % BODY-AXIS velocity at a boat-tail
 % Returns [x z uB wB q theta]
 
@@ -9,6 +9,7 @@ function newState = getstate_btail(state)
     w = state(end,4);
     q = state(end,5);
     theta = state(end,6);
+    ref_area = pi * 0.32385^2 / 4;
 
     % Geometry: base/boattail point relative to CG (BODY frame)
     dbtail = -6.0;              % m (axial station of base point)
@@ -22,6 +23,14 @@ function newState = getstate_btail(state)
 
     uB = V_bt(1);
     wB = V_bt(3);
+    
+    %Get dynamic pressure and angle
+    [qinf, alpha] = getBoattailVinf(uB, wB, z, percentage);
+    
+    Fa = - Ca * qinf * ref_area;
+    Fn = Cn * qinf * ref_area;
+    
+    theta = alpha;
 
     newState = [x, z, uB, wB, q, theta];
 end
