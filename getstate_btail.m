@@ -22,5 +22,6 @@ function newState = getstate_btail(state)
 
     uB = V_bt(1);
     wB = V_bt(3);
+
     newState = [x, z, uB, wB, q, theta];
 end
