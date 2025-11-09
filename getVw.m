@@ -12,11 +12,11 @@ Output:
 - vw: Wind velocity in m/s.
 %}
 
-    alt = (-y(2) - 1219.9) * 3.28084; % Convert altitude from meters to feet.
+    alt = (-y - 1219.9) * 3.28084; % Convert altitude from meters to feet.
     % wind data is geodetic, subtract ground elevation from altitude above
     % sea level.
-    if ~isreal(y(2)) || isnan(y(2))
-    error('Altitude (state(2)) is not real: %g + %gi', real(y(2)), imag(y(2)));
+    if ~isreal(y) || isnan(y)
+    error('Altitude (state(2)) is not real: %g + %gi', real(y), imag(y));
     end
     
     % Define altitude breakpoints (ft) and corresponding wind speeds (ft/s)
