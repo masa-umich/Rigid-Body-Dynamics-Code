@@ -26,7 +26,7 @@ qinf = 0.5 * rho * vinf^2;
 
 % Parachute force (in fixed frame)
 
-fParachute=-qinf* CDp * parA * vinf_unit_vec; % 2x1
+fParachute = -qinf* CDp * parA * vinf_unit_vec; % 2x1
 
 T = [ cos(stateTheta)  sin(stateTheta);
      -sin(stateTheta)  cos(stateTheta)];

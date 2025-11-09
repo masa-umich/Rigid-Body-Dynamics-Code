@@ -1,46 +1,25 @@
-function [newState] = getstate_NC(state)
-% Return new state for the nose cone
+function newState = getstate_NC(state)
+% BODY velocity at a nose-cone
+% Returns [x z uN wN q theta]
 
-    % Extract states
     x = state(end,1);
     z = state(end,2);
     u = state(end,3);
     w = state(end,4);
     q = state(end,5);
-    stateTheta = state(end,6);
-    r_nc = 0; %distance from point to nose cone
-    g = 9.81;
-    rho = 1.225;
-    % Constants
-    CDp = 1.2;
-    parA = 18.68; % parachute reference area [m^2] (drogue parachute)
-    
-    
-    Va = [u;0;w];
+    theta = state(end,6);
 
-    Vb = Va + [0; 0; q * r_nc];
-    
-    y_trans = [cos(stateTheta), 0, sin(stateTheta); 0, 1, 0; -sin(stateTheta), 0, cos(stateTheta)];
+    % Geometry: vector from CG to nose point (BODY frame)
+    dNosecone = 2.0;            % m (location of nose point)
+    dryCOM    = 3.0;            % m (CG location rocket)
+    r_nc = [dryCOM - dNosecone; 0; 0];   % [rx; ry; rz]
 
-    newVb = cross(Vb,y_trans);
+    % Rigid-body kinematics in BODY
+    V_com = [u; 0; w];
+    omega = [0; q; 0];
+    V_nc  = V_com + cross(omega, r_nc);
 
-    dx = newVb(1);
-
-    dz = newVb(3);
-    newState = [x + dx, z + dz, u, w, q, stateTheta];
-    
-    % Calculate the inverse tangent of the vertical and horizontal velocities
-    stateTheta = atan2(w, u);
-    
-    % Update the state vector with the new values
-    newState = [x, z, u, w, q, stateTheta];
-
+    uN = V_nc(1);
+    wN = V_nc(3);
+    newState = [x, z, uN, wN, q, theta];
 end
-
-
-
-
-
-
-
-
