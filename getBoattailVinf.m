@@ -1,4 +1,4 @@
-function [qinf, alpha] = getBoattailVinf(ub, wb, z, percentage)
+function [vinf, vinf_vec, qinf, alpha] = getBoattailVinf(ub, wb, z, percentage)
 %{
 This function gets the total velocity vector magnitude and angle of attack
 in respect to the vehicle based on the state vector that is given.
