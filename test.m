@@ -6,9 +6,9 @@ clear; clc;
 state = [0, ...       % x-position (m)
           1000, ...   % z-position (m)
           50, ...     % u: axial velocity (m/s)
-          -20, ...     % w: vertical velocity (m/s)
-          5, ...      % q: pitch rate (deg/s)
-          5];         % theta: pitch angle (deg)
+          -5, ...     % w: vertical velocity (m/s)
+          deg2rad(5), ...      % q: pitch rate (deg/s)
+          deg2rad(5)];         % theta: pitch angle (deg)
 
 % Define constants
 global rho Cn Ca
@@ -28,5 +28,5 @@ fprintf('x      = %.2f m\n', newState(1));
 fprintf('z      = %.2f m\n', newState(2));
 fprintf('uN     = %.2f m/s\n', newState(3));
 fprintf('wN     = %.2f m/s\n', newState(4));
-fprintf('q      = %.3f deg/s\n', newState(5));
-fprintf('theta  = %.2f deg\n', newState(6));
+fprintf('q      = %.3f deg/s\n', rad2deg(newState(5)));
+fprintf('theta  = %.2f deg\n', rad2deg(newState(6)));

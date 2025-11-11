@@ -3,6 +3,7 @@ function [CoD, CoL] = getCoeff(AoA)
     % CoL = Coefficient of Lift
     % RA = Reference Area
     % AoA = Angle of Attack
+    AoA = rad2deg(AoA);
     M = readmatrix("/Users/shreyasgorre/Documents/MATLAB/Rigid-Body-Dynamics-Code/FlipSimDMNEW.csv");
     D = M(:,3);
     L = M(:,4);
