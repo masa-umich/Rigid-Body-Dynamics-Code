@@ -1,4 +1,4 @@
-% state vector form: [xp,zp,u,w,q,theta,psi]
+    % state vector form: [xp,zp,u,w,q,theta,psi]
 
 close all; clear; clc;
 
@@ -41,7 +41,7 @@ time(i,1) = t;
 
 %freefall
 while state(end,2) < farAlt
-    dt = 0.1;
+    dt = 0.3;
     state(i+1,:) = RK4Solver(state(i,:),dt,percentage,mass,Iyy);
     t = t+dt;
     i = i+1;

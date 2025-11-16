@@ -16,7 +16,7 @@ Output:
     % wind data is geodetic, subtract ground elevation from altitude above
     % sea level.
     if ~isreal(y) || isnan(y)
-    error('Altitude (state(2)) is not real: %g + %gi', real(y(2)), imag(y(2)));
+    error('Altitude (state(2)) is not real: %g + %gi', real(y), imag(y));
     end
     
     % Define altitude breakpoints (ft) and corresponding wind speeds (ft/s)

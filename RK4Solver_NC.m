@@ -1,4 +1,4 @@
-function [updatedState] = RK4Solver(state,dt, percentage, mass, Iyy)
+function [updatedState] = RK4Solver_NC(state,dt, percentage, mass, Iyy)
 
 % RK4 numerical integration
     f0 = getNewStateDerivs(state, percentage, mass, Iyy);
@@ -7,9 +7,4 @@ function [updatedState] = RK4Solver(state,dt, percentage, mass, Iyy)
     f3 = getNewStateDerivs(state + dt*f2, percentage, mass, Iyy);
     
     updatedState = state + (dt/6)*(f0 + 2*f1 + 2*f2 + f3);
-    updatedState(6) = mod(updatedState(6), 2*pi);
-    disp(updatedState);
 end
-
-
-

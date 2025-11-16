@@ -13,16 +13,14 @@ CDp = 1.2;
 parA = 18.68; % parachute reference area [m^2] (drogue parachute)
 
 % Compute freestream
-[vinf, vinf_vec, alpha] = getLimelightVinf(state, percentage);
+[vinf, vinf_vec, qinf, alpha] = getBoattailVinf(u, w, z, percentage);
 
 vinf_vec = vinf_vec(:);                 % force column (2×1)
 if norm(vinf_vec) < 1e-6
     vinf_unit_vec = [0;0];
 else
     vinf_unit_vec = vinf_vec ./ norm(vinf_vec);   % keep 2×1
-end
-
-qinf = 0.5 * rho * vinf^2;                  
+end              
 
 % Parachute force (in fixed frame)
 
