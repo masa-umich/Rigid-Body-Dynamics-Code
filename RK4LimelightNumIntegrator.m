@@ -1,4 +1,4 @@
-    % state vector form: [xp,zp,u,w,q,theta,psi]
+    % state vector form: [xp,zp,u,w,q,theta]
 
 close all; clear; clc;
 
@@ -9,14 +9,15 @@ farAlt = -609.6; %(m)
 appogee = -16741; %(m)
 
 % Inputs
-u = 50; % x component of COM velo. body coordinate system (m/s)
-w = 0; % z component of COM velo. body coordinate system (m/s)
+u = 50; % x component of COM velo. body (change to fixed) coordinate system (m/s)
+w = 0; % z component of COM velo. body (change to fixed) coordinate system (m/s)
 q = 0; % y component of rotation rate body coordinate syatem (rad/s)
 theta = 0; % pitch (rad)
 xp = 0; % x position in global coordinate system (m)
 zp = appogee; % z position in global coordinate system (m)
 t = 0 ;
-rho = 1.225; % air density
+[a, b, rho, c] = atmosphere(zp);
+% rho is air density, a, b, c are irrelevant
 
 % Wind for getVw
 percentage = '50';
@@ -41,7 +42,7 @@ time(i,1) = t;
 
 %freefall
 while state(end,2) < farAlt
-    dt = 0.3;
+    dt = 0.5;
     state(i+1,:) = RK4Solver(state(i,:),dt,percentage,mass,Iyy);
     t = t+dt;
     i = i+1;

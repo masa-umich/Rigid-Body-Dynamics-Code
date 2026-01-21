@@ -3,7 +3,7 @@ function [vinf, vinf_vec, qinf, alpha] = getBoattailVinf(ub, wb, z, percentage)
 This function gets the total velocity vector magnitude and angle of attack
 in respect to the vehicle based on the state vector that is given.
 %}
-    rho = 1.225;
+    [t, p, rho, a] = atmosphere(z);
     % get wind speed
     vw = getVw(z, percentage);
     u = ub;
