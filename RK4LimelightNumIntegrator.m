@@ -3,10 +3,10 @@
 close all; clear; clc;
 
 % FAR Launch Site Altutude
-farAlt = -609.6; %(m)
+farAlt = 609.6; %(m)
 
 %Appogee Input
-appogee = -16741; %(m)
+appogee = 16741; %(m)
 
 % Inputs
 u = 50; % x component of COM velo. body (change to fixed) coordinate system (m/s)
@@ -41,8 +41,8 @@ i = 1;
 time(i,1) = t;
 
 %freefall
-while state(end,2) < farAlt
-    dt = 0.5;
+while state(end,2) > farAlt
+    dt = 0.8;
     state(i+1,:) = RK4Solver(state(i,:),dt,percentage,mass,Iyy);
     t = t+dt;
     i = i+1;
