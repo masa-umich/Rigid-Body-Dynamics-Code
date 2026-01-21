@@ -27,13 +27,14 @@ end
 % Parachute force (in fixed frame)
 
 fParachute = -qinf* CDp * parA * vinf_unit_vec; % 2x1
+disp(fParachute);
 
 T = [ cos(stateTheta)  sin(stateTheta);
      -sin(stateTheta)  cos(stateTheta)];
 % Fx is force in the x-direction (GLOBAL)
 % Fz is the force in the z-direction (GLOBAL)
-Fx = fParachute(1);
-Fz = fParachute(2) - g;
+Fx = -fParachute(1);
+Fz = fParachute(2) - g * mass;
 
 [CoD, CoL] = getCoeff(stateTheta);
 
@@ -43,16 +44,20 @@ RA = pi * 0.32385^2;
 % FD is the drag force (body)
 % FL is the lift force (body)
 FD = -0.5 * rho * CoD * RA;
-FL = -0.5 * rho * CoL * RA;
+FL = 0.5 * rho * CoL * RA;
 
 % NOTE: stateTheta is the angle that the rocket is angled
 % NOT the angle of velocity. Since Drag and Lift are applied
 % based on the angle of velocity, considering changing
 % the following equations. -Hugo
 % UPDATE: replaced stateTheta with velocityAngle
+disp("Lift:" + FL);
+disp("Drag:" + FD);
 
 Fx = Fx + FD * cos(velocityAngle) + FL * sin(velocityAngle);
 Fz = Fz + FD * sin(velocityAngle) + FL * cos(velocityAngle);
+disp("X-Force:" + Fx);
+disp("Z-Force:" + Fz);
 
 du = Fx/mass;
 dw = Fz/mass;

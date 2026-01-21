@@ -42,7 +42,7 @@ time(i,1) = t;
 
 %freefall
 while state(end,2) > farAlt
-    dt = 0.8;
+    dt = 1;
     state(i+1,:) = RK4Solver(state(i,:),dt,percentage,mass,Iyy);
     t = t+dt;
     i = i+1;
@@ -55,4 +55,4 @@ xlabel('Time (s)')
 title('Altitude vs Time')
 
 disp(['Terminal velocity in pilot chute phase is: ',num2str(max(state(:,4))) , ' m/s'])
-disp(['Limelight descended ',num2str(-1*(-state(end,2)+state(1,2))), ' m under pilot chute flight phase'])
+disp(['Limelight descended ',num2str(1*(-state(end,2)+state(1,2))), ' m under pilot chute flight phase'])
