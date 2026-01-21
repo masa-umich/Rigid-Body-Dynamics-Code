@@ -33,7 +33,7 @@ T = [ cos(stateTheta)  sin(stateTheta);
      -sin(stateTheta)  cos(stateTheta)];
 % Fx is force in the x-direction (GLOBAL)
 % Fz is the force in the z-direction (GLOBAL)
-Fx = -fParachute(1);
+Fx = fParachute(1);
 Fz = fParachute(2) - g * mass;
 
 [CoD, CoL] = getCoeff(stateTheta);
