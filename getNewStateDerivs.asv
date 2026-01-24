@@ -25,16 +25,16 @@ else
     vinf_unit_vec = vinf_vec ./ norm(vinf_vec);   % keep 2×1
 end              
 
-%fParachute = -qinf* CDp * parAp * vinf_unit_vec;
+fParachute = -qinf* CDp * parAp * vinf_unit_vec;
 
-%Parachute force (in fixed frame)
-if z > (609.6 + 1524)
-    fParachute = -qinf* CDp * parAp * vinf_unit_vec; % 2x1
-elseif z > (609.6 + 305) 
-    fParachute = -qinf* CDp * parAd * vinf_unit_vec; % 2x1
-else 
-    fParachute = -qinf* CDp * parAm * vinf_unit_vec; % 2x1
-end
+Parachute force (in fixed frame)
+%if z > (609.6 + 1524)
+   % fParachute = -qinf* CDp * parAp * vinf_unit_vec; % 2x1
+%elseif z > (609.6 + 305) 
+%    fParachute = -qinf* CDp * parAd * vinf_unit_vec; % 2x1
+%else 
+%    fParachute = -qinf* CDp * parAm * vinf_unit_vec; % 2x1
+%end
 
 %T = [ cos(stateTheta)  sin(stateTheta);
      %-sin(stateTheta)  cos(stateTheta)];
@@ -84,18 +84,16 @@ Fz = Fz + FA * sin(theta) + FN * cos(theta);
 
 CoP = 5.6;
 CoM = 7.56 - (121.05 / 39.37); 
-%disp("X: " + fParachute(1));
-%disp("Z: " + fParachute(2));
+disp("X: " + fParachute(1));
+disp("Z: " + fParachute(2));
 
 FNpara = fParachute(1) * sin(theta) + fParachute(2) * cos(theta);
 
-%disp("N: " + FNpara);
+disp("N: " + FNpara);
 
 % PD is the parachute distance from the tip of the nosecone
 PD = 44 / 39.37;
 
-%Technically negative torque, but FN is negative because of negative CoL
-%from old coeff sheet
 Torque = (CoP - CoM) * FN;
 
 % Parachute forces after delay

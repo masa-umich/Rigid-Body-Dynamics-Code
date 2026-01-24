@@ -1,7 +1,7 @@
     % state vector form: [xp,zp,u,w,q,theta]
 
 close all; clear; clc;
-
+format long g;
 % FAR Launch Site Altutude
 farAlt = 609.6; %(m)
 
@@ -16,8 +16,7 @@ theta = 0; % pitch (rad)
 xp = 0; % x position in global coordinate system (m)
 zp = appogee; % z position in global coordinate system (m)
 t = 0 ;
-[a, b, rho, c] = atmosphere(zp);
-% rho is air density, a, b, c are irrelevant
+[~, ~, rho, ~] = atmosphere(zp);
 
 % Wind for getVw
 percentage = '50';
@@ -42,17 +41,17 @@ time(i,1) = t;
 
 %freefall
 while state(end,2) > farAlt
-    dt = 1;
-    state(i+1,:) = RK4Solver(state(i,:),dt,percentage,mass,Iyy);
+    dt = 0.1;
+    state(i+1,:) = RK4Solver(state(i,:),dt,percentage,mass,Iyy,t);
     t = t+dt;
     i = i+1;
     time(i,1) = t;
 end
 
-plot(time(1:end-10),-state(1:end-10,2));
+plot(time(1:end-10),state(1:end-10,2));
 ylabel('Altitude (m)')
 xlabel('Time (s)')
 title('Altitude vs Time')
 
-disp(['Terminal velocity in pilot chute phase is: ',num2str(max(state(:,4))) , ' m/s'])
+disp(['Terminal velocity in pilot chute phase is: ',num2str(min(state(:,4))) , ' m/s'])
 disp(['Limelight descended ',num2str(1*(-state(end,2)+state(1,2))), ' m under pilot chute flight phase'])
