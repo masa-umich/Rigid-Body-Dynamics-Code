@@ -15,7 +15,7 @@ parAd = 7.1; % drogue parachute
 parAm = 177; % main parachute
 % Below is the angle between the velocity vector and the x-axis
 
-% Compute freestream
+%% Compute freestream
 [qinf, vinf, vinf_vec, alpha] = getLimelightVinf(state, percentage);
 
 vinf_vec = vinf_vec(:);                 % force column (2×1)
@@ -25,23 +25,25 @@ else
     vinf_unit_vec = vinf_vec ./ norm(vinf_vec);   % keep 2×1
 end              
 
-%fParachute = -qinf* CDp * parAp * vinf_unit_vec;
+fParachute = -qinf* CDp * parAp * vinf_unit_vec;
+
+%% Compute Body Forces
 
 %Parachute force (in fixed frame)
-if z > (609.6 + 1524)
-    fParachute = -qinf* CDp * parAp * vinf_unit_vec; % 2x1
-elseif z > (609.6 + 305) 
-    fParachute = -qinf* CDp * parAd * vinf_unit_vec; % 2x1
-else 
-    fParachute = -qinf* CDp * parAm * vinf_unit_vec; % 2x1
-end
+%if z > (609.6 + 1524)
+ %   fParachute = -qinf* CDp * parAp * vinf_unit_vec; % 2x1
+%elseif z > (609.6 + 305) 
+ %   fParachute = -qinf* CDp * parAd * vinf_unit_vec; % 2x1
+%else 
+ %   fParachute = -qinf* CDp * parAm * vinf_unit_vec; % 2x1
+%end
 
-%T = [ cos(stateTheta)  sin(stateTheta);
-     %-sin(stateTheta)  cos(stateTheta)];
+T = [ cos(theta)  sin(theta);
+     -sin(theta)  cos(theta)];
 % Fx is force in the x-direction (GLOBAL)
 % Fz is the force in the z-direction (GLOBAL)
-Fx = 0;
-Fz = -g * mass;
+% Fx = 0;
+% Fz = -g * mass;
 
 %disp(Fx + " xz para + grav " + Fz);
 
@@ -68,6 +70,10 @@ FN = 0.5 * rho * CoN * RA * vinf^2;
 %disp("Lift:" + FL);
 %disp("Drag:" + FD);
 
+vec_x = [FN ; FA];
+
+[Fx ; Fz] = 
+
 Fx = Fx + FA * cos(theta) + FN * sin(theta);
 Fz = Fz + FA * sin(theta) + FN * cos(theta);
 
@@ -92,7 +98,7 @@ FNpara = fParachute(1) * sin(theta) + fParachute(2) * cos(theta);
 %disp("N: " + FNpara);
 
 % PD is the parachute distance from the tip of the nosecone
-PD = 44 / 39.37;
+PD = 70 / 39.37;
 
 %Technically negative torque, but FN is negative because of negative CoL
 %from old coeff sheet
@@ -100,7 +106,11 @@ Torque = (CoP - CoM) * FN;
 
 % Parachute forces after delay
 if (t >=2)
-    Torque = Torque + FNpara * PD;
+    if (theta < pi / 2)
+        Torque = Torque + FNpara * PD;
+    else 
+        Torque = Torque - FNpara * PD;
+    end
     Fx = Fx + fParachute(1);
     Fz = Fz + fParachute(2);
 end
@@ -183,12 +193,13 @@ end
 %CDFin = CDf0+CDfi0+CDfalpha;
 
 %% Caspar Workflow:
-% 1. calculate forces in a fixed body frame
+% 1. calculate aero forces in a fixed body frame 
 % 2. calculate transformation matrix
-% 3. transform forces into global coordinate system
-% 4. take components of new force vector in global coordinate system,
+% 3. transform aero forces into global coordinate system
+% 4. add gravity to rotated aero forces
+% 5. take components of new force vector in global coordinate system,
 % divide by mass, to get your state derivatives in the global coordinate
 % system
-% 5. Find the normal forces on the NoseCone, Boattail, and Fins, then find
+% 6. Find the normal forces on the NoseCone, Boattail, and Fins, then find
 % the torque caused be each. Then take a Moment of Intertia from the master
 % sheet and use to find angular acceleration (helps for finding theta)
