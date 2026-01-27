@@ -70,12 +70,19 @@ FN = 0.5 * rho * CoN * RA * vinf^2;
 %disp("Lift:" + FL);
 %disp("Drag:" + FD);
 
+%% Utilize linear transformation
 vec_x = [FN ; FA];
+forces = T * vec_x;
 
-[Fx ; Fz] = 
+% Update global forces
+Fx = 0;
+Fz = -g * mass;
 
-Fx = Fx + FA * cos(theta) + FN * sin(theta);
-Fz = Fz + FA * sin(theta) + FN * cos(theta);
+Fx = Fx + forces(1);
+Fz = Fz + forces(2);
+
+% Fx = Fx + FA * cos(theta) + FN * sin(theta);
+% Fz = Fz + FA * sin(theta) + FN * cos(theta);
 
 %disp(Fx + " xz final " + Fz);
 %disp("X-Force:" + Fx);
@@ -111,7 +118,8 @@ if (t >=2)
     else 
         Torque = Torque - FNpara * PD;
     end
-    Fx = Fx + fParachute(1);
+    %display(fParachute(1));
+    %Fx = Fx + fParachute(1);
     Fz = Fz + fParachute(2);
 end
 
