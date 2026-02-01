@@ -30,13 +30,13 @@ fParachute = -qinf* CDp * parAp * vinf_unit_vec;
 %% Compute Body Forces
 
 %Parachute force (in fixed frame)
-%if z > (609.6 + 1524)
- %   fParachute = -qinf* CDp * parAp * vinf_unit_vec; % 2x1
-%elseif z > (609.6 + 305) 
- %   fParachute = -qinf* CDp * parAd * vinf_unit_vec; % 2x1
-%else 
- %   fParachute = -qinf* CDp * parAm * vinf_unit_vec; % 2x1
-%end
+% if z > (609.6 + 1524)
+%    fParachute = -qinf* CDp * parAp * vinf_unit_vec; % 2x1
+% elseif z > (609.6 + 305) 
+%    fParachute = -qinf* CDp * parAd * vinf_unit_vec; % 2x1
+% else 
+%    fParachute = -qinf* CDp * parAm * vinf_unit_vec; % 2x1
+% end
 
 T = [ cos(theta)  sin(theta);
      -sin(theta)  cos(theta)];
@@ -123,12 +123,21 @@ if (t >=2)
     Fz = Fz + fParachute(2);
 end
 
-du = Fx/mass;
-dw = Fz/mass;
+FA = Fx*cos(theta) + Fz*sin(theta);      % axial (along body x)
+FN = -Fx*sin(theta) + Fz*cos(theta);     % normal (perp to body x)
+
+% Need to make sure that du and dw are solved right (might
+% need to add the Fa from parachute but not sure)
+du = FA/mass;
+dw = FN/mass;
 dq = Torque / Iyy; % Angular acceleration due to torque
 
-dx = u;
-dz = w;
+% dx = u;
+% dz = w;
+
+dx =  u*cos(theta) - w*sin(theta);
+dz =  u*sin(theta) + w*cos(theta);
+
 dtheta = q;
 
 %disp("Normal force: " + FN);
