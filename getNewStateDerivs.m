@@ -30,13 +30,43 @@ fParachute = -qinf* CDp * parAp * vinf_unit_vec;
 %% Compute Body Forces
 
 %Parachute force (in fixed frame)
+if z > (609.6 + 1524)
+   fParachute = -qinf* CDp * parAp * vinf_unit_vec; % 2x1
+elseif z > (609.6 + 305) 
+   fParachute = -qinf* CDp * parAd * vinf_unit_vec; % 2x1
+else 
+   fParachute = -qinf* CDp * parAd * vinf_unit_vec; % 2x1
+end
+
+% Define Main Deployment Altitude
+mainDeployAlt = 609.6 + 305; 
+
+% %% Compute Body Forces (Gradual increase in size)
+% 
+% % Parachute force (in fixed frame)
 % if z > (609.6 + 1524)
-%    fParachute = -qinf* CDp * parAp * vinf_unit_vec; % 2x1
-% elseif z > (609.6 + 305) 
-%    fParachute = -qinf* CDp * parAd * vinf_unit_vec; % 2x1
+%    currentArea = parAp; 
+% elseif z > mainDeployAlt
+%    currentArea = parAd; 
 % else 
-%    fParachute = -qinf* CDp * parAm * vinf_unit_vec; % 2x1
+%    % MAIN PARACHUTE LOGIC
+%    % Calculate how far below the deployment altitude we are
+%    distBelow = mainDeployAlt - z;
+% 
+%    % Define an inflation distance (e.g., takes 50 meters to fully inflate)
+%    % This prevents the area from snapping to 177 instantly
+%    inflationDist = 50; 
+% 
+%    if distBelow < inflationDist
+%        % Linear interpolation from Drogue Area to Main Area
+%        percentOpen = distBelow / inflationDist;
+%        currentArea = parAd + (parAm - parAd) * percentOpen;
+%    else
+%        currentArea = parAm;
+%    end
 % end
+% 
+% fParachute = -qinf * CDp * currentArea * vinf_unit_vec;
 
 T = [ cos(theta)  sin(theta);
      -sin(theta)  cos(theta)];
