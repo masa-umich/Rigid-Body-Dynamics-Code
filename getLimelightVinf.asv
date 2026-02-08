@@ -11,8 +11,8 @@ in respect to the vehicle based on the state vector that is given.
     w = state(end, 4);
     theta = state(end, 6);
 
-    T = [ cos(theta)  -sin(theta);
-     sin(theta)  cos(theta)];
+    T = [ cos(theta)  sin(theta);
+     -sin(theta)  cos(theta)];
 
     % Transform the velocity vector to the global frame
     v_global = T * [u; w];
@@ -33,13 +33,10 @@ in respect to the vehicle based on the state vector that is given.
     %alpha = acos((((u_rel-vinf)/cos(theta)) + (w_rel/sin(theta))/sqrt((u_rel+vinf)^2+w_rel^2)));
 
     T = [ cos(theta)  sin(theta);
-        -sin(theta)  cos(theta)];
-
+     -sin(theta)  cos(theta)];
     % Transform the velocity vector to the global frame
-    v_body = T * [u_rel; w_rel];
+    v_body = T * [u; w];
 
-    u = v_body(1);
-    w = v_body(2);
 
-    alpha = atan2(w, u);
+    alpha = atan2(w_rel, u_rel);
 end

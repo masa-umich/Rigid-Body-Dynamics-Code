@@ -1,4 +1,4 @@
-function [newStateDerivs] = getNewStateDerivs(state, percentage, mass, Iyy, t)
+function [newStateDerivs] = getNewStateDerivs(state, percentage, mass, Iyy, ff)
 
 % Extract states
 z = state(end,2);
@@ -9,7 +9,7 @@ theta = state(end,6);
 g = 9.81;
 [~, ~, rho, ~] = atmosphere(z);
 % Constants
-CDp = 0.7; % pilot parachute (estimation, 0.62-0.77)
+CDp = 1.60; % pilot parachute (estimation, 0.62-0.77)
 parAp = 1.29; % parachute reference area [m^2] (pilot parachute)
 parAd = 7.1; % drogue parachute
 parAm = 177; % main parachute
@@ -34,8 +34,8 @@ if z > (609.6 + 1524)
    fParachute = -qinf* CDp * parAp * vinf_unit_vec; % 2x1
 elseif z > (609.6 + 305) 
    fParachute = -qinf* CDp * parAd * vinf_unit_vec; % 2x1
-else 
-   fParachute = -qinf* CDp * parAd * vinf_unit_vec; % 2x1
+else
+    fParachute = -qinf* CDp * parAm * vinf_unit_vec; % 2x1
 end
 
 % Define Main Deployment Altitude
@@ -68,8 +68,9 @@ mainDeployAlt = 609.6 + 305;
 % 
 % fParachute = -qinf * CDp * currentArea * vinf_unit_vec;
 
-T = [ cos(theta)  sin(theta);
-     -sin(theta)  cos(theta)];
+% Body to global
+T = [ cos(theta)  -sin(theta);
+     sin(theta)  cos(theta)];
 % Fx is force in the x-direction (GLOBAL)
 % Fz is the force in the z-direction (GLOBAL)
 % Fx = 0;
@@ -77,7 +78,11 @@ T = [ cos(theta)  sin(theta);
 
 %disp(Fx + " xz para + grav " + Fz);
 
-[CoA, CoN] = getCoeff(theta);
+[CoD, CoL] = getCoeff(theta);
+
+CoA = CoD*cos(alpha) - CoL*sin(alpha);
+
+CoN = CoD*sin(alpha) + CoL*cos(alpha);
 
 % RA is the reference Area of the rocket
 RA = pi * 0.32385^2;
@@ -88,7 +93,7 @@ RA = pi * 0.32385^2;
 %disp(CoA + " aerial coeffs " + CoN);
 
 FA = -0.5 * rho * CoA * RA * vinf^2;
-FN = 0.5 * rho * CoN * RA * vinf^2;
+FN = -0.5 * rho * CoN * RA * vinf^2;
 
 %disp(FA + "body forces" + FN);
 
@@ -101,7 +106,7 @@ FN = 0.5 * rho * CoN * RA * vinf^2;
 %disp("Drag:" + FD);
 
 %% Utilize linear transformation
-vec_x = [FN ; FA];
+vec_x = [FA ; FN];
 forces = T * vec_x;
 
 % Update global forces
@@ -142,14 +147,14 @@ PD = 70 / 39.37;
 Torque = (CoP - CoM) * FN;
 
 % Parachute forces after delay
-if (t >=2)
+if (ff == false)
     if (theta < pi / 2)
         Torque = Torque + FNpara * PD;
     else 
         Torque = Torque - FNpara * PD;
     end
     %display(fParachute(1));
-    %Fx = Fx + fParachute(1);
+    Fx = Fx + fParachute(1);
     Fz = Fz + fParachute(2);
 end
 

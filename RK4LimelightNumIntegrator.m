@@ -38,12 +38,12 @@ timeAfterAppogee = 2; %(s)
 
 i = 1;
 time(i,1) = t;
-
+t_elapsed = 0;
 %freefall
 while state(end,2) > farAlt
 % while time(i) < 100
-    dt = 0.1;
-    state(i+1,:) = RK4Solver(state(i,:),dt,percentage,mass,Iyy,t);
+    dt = 0.01;
+    [state(i+1,:),t_elapsed] = RK4Solver(state(i,:),dt,percentage,mass,Iyy,t, t_elapsed);
     t = t+dt;
     i = i+1;
     time(i,1) = t;
