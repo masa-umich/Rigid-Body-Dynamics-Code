@@ -25,6 +25,7 @@ end
     updatedState = state + (dt/6)*(f0 + 2*f1 + 2*f2 + f3);
     %updatedState(6) = mod(updatedState(6), 2*pi);
     disp("state: " + updatedState);
+    disp("t_elapsed: " + t_elapsed);
 end
 
 

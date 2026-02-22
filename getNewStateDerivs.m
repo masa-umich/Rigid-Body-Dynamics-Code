@@ -137,7 +137,7 @@ CoM = 7.56 - (121.05 / 39.37);
 
 FNpara = fParachute(1) * sin(theta) + fParachute(2) * cos(theta);
 
-%disp("N: " + FNpara);
+disp("N: " + FNpara);
 
 % PD is the parachute distance from the tip of the nosecone
 PD = 70 / 39.37;
@@ -151,7 +151,7 @@ if (ff == false)
     if (theta < pi / 2)
         Torque = Torque + FNpara * PD;
     else 
-        Torque = Torque - FNpara * PD;
+        Torque = Torque + FNpara * PD;
     end
     %display(fParachute(1));
     Fx = Fx + fParachute(1);

@@ -42,7 +42,16 @@ t_elapsed = 0;
 %freefall
 while state(end,2) > farAlt
 % while time(i) < 100
-    dt = 0.01;
+    dt = 0.1;
+    if(state(end, 2) < 609.6 +305) 
+        dt = 0.01;
+    end
+    if(t_elapsed > 2) 
+        dt = 0.01;
+    end
+    if(t_elapsed > 5)
+        dt = 0.1;
+    end
     [state(i+1,:),t_elapsed] = RK4Solver(state(i,:),dt,percentage,mass,Iyy,t, t_elapsed);
     t = t+dt;
     i = i+1;
