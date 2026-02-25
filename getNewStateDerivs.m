@@ -1,4 +1,4 @@
-function [newStateDerivs] = getNewStateDerivs(state, percentage, mass, Iyy, ff)
+function [newStateDerivs, fParachute] = getNewStateDerivs(state, percentage, mass, Iyy, ff)
 
 % Extract states
 z = state(end,2);
@@ -14,6 +14,10 @@ parAp = 1.29; % parachute reference area [m^2] (pilot parachute)
 parAd = 7.1; % drogue parachute
 parAm = 177; % main parachute
 % Below is the angle between the velocity vector and the x-axis
+% --- Parachute staging ---
+farAlt = 609.6;                 % FAR site altitude [m]
+pilotToDrogueAlt = farAlt + 1524; % example threshold [m]
+mainDeployAlt = farAlt + 305;     % your existing main deploy altitude [m]
 
 %% Compute freestream
 [qinf, vinf, vinf_vec, alpha] = getLimelightVinf(state, percentage);
@@ -23,7 +27,34 @@ if norm(vinf_vec) < 1e-6
     vinf_unit_vec = [0;0];
 else
     vinf_unit_vec = vinf_vec ./ norm(vinf_vec);   % keep 2×1
-end              
+end
+
+% % --- Choose stage + inflate main gradually ---
+% inflationDist = 100; % [m] main inflation distance (tune this)
+% 
+% if z > pilotToDrogueAlt
+%     CDch = CDp;
+%     Aeff = parAp;
+% 
+% elseif z > mainDeployAlt
+%     CDch = CDp;
+%     Aeff = parAd;
+% 
+% else
+%     % MAIN: ramp from drogue -> main
+%     CDch = CDp;
+% 
+%     distBelow = mainDeployAlt - z;                 % [m] how far below deploy
+%     frac = min(max(distBelow / inflationDist, 0), 1); % clamp 0..1
+% 
+%     % Smooth ramp (less numerical spike than linear)
+%     frac_smooth = 0.5 - 0.5*cos(pi*frac); % cosine ramp 0->1
+% 
+%     Aeff = parAd + (parAm - parAd)*frac_smooth;
+% end
+% 
+% % Parachute force in GLOBAL
+% fParachute = -qinf * CDch * Aeff * vinf_unit_vec;  % 2x1
 
 fParachute = -qinf* CDp * parAp * vinf_unit_vec;
 
@@ -37,6 +68,8 @@ elseif z > (609.6 + 305)
 else
     fParachute = -qinf* CDp * parAm * vinf_unit_vec; % 2x1
 end
+
+
 
 % Define Main Deployment Altitude
 mainDeployAlt = 609.6 + 305; 

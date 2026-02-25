@@ -39,6 +39,8 @@ timeAfterAppogee = 2; %(s)
 i = 1;
 time(i,1) = t;
 t_elapsed = 0;
+
+f_ch = zeros(200000,1);   % parachute load history [N]
 %freefall
 while state(end,2) > farAlt
 % while time(i) < 100
@@ -52,10 +54,12 @@ while state(end,2) > farAlt
     if(t_elapsed > 5)
         dt = 0.1;
     end
-    [state(i+1,:),t_elapsed] = RK4Solver(state(i,:),dt,percentage,mass,Iyy,t, t_elapsed);
+    [state(i+1,:),fP, t_elapsed] = RK4Solver(state(i,:),dt,percentage,mass,Iyy,t, t_elapsed);
+    f_ch(i+1) = norm(fP);
     t = t+dt;
     i = i+1;
     time(i,1) = t;
+    
 end
 
 figure(1)
@@ -79,3 +83,10 @@ title('Absolute position')
 
 disp(['Terminal velocity in pilot chute phase is: ',num2str(min(state(:,4))) , ' m/s'])
 disp(['Limelight descended ',num2str(1*(-state(end,2)+state(1,2))), ' m under pilot chute flight phase'])
+
+
+[maxLoad, idx] = max(f_ch);
+
+disp(['MAX parachute load = ', num2str(maxLoad), ' N'])
+disp(['Occurs at t = ', num2str(time(idx)), ' s'])
+disp(['Altitude at max load = ', num2str(state(idx,2)), ' m'])
