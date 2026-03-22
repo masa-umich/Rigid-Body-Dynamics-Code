@@ -40,16 +40,17 @@ i = 1;
 time(i,1) = t;
 t_elapsed = 0;
 
-f_ch = zeros(200000,1);   % parachute load history [N]
+f_ch = [];   % parachute load history [N]
+para_t = 0;
 %freefall
 while state(end,2) > farAlt
 % while time(i) < 100
     dt = 0.1;
     if(state(end, 2) < 609.6 +305) 
-        dt = 0.01;
+        dt = 0.001;
     end
     if(t_elapsed > 2) 
-        dt = 0.01;
+        dt = 0.001;
     end
     if(t_elapsed > 5)
         dt = 0.1;
@@ -64,10 +65,10 @@ end
 
 figure(1)
 subplot(1,2,1)
-plot(time,state(:,6));
-ylabel('Theta [rad]')
+plot(time,rad2deg(state(:,6)));
+ylabel('Theta [deg]')
 xlabel('Time (s)')
-title('Theta [rad] i.r.t. horiz vs Time')
+title('Theta [deg] i.r.t. horiz vs Time')
 
 subplot(1,2,2)
 plot(time,state(:,2));
@@ -80,6 +81,12 @@ plot(state(:,1), state(:,2))
 ylabel('y pos [m]')
 xlabel('x pos [m]')
 title('Absolute position')
+
+figure(3)
+plot(time, f_ch)
+ylabel('Force [N]')
+xlabel('x pos [m]')
+title('Force Graph')
 
 disp(['Terminal velocity in pilot chute phase is: ',num2str(min(state(:,4))) , ' m/s'])
 disp(['Limelight descended ',num2str(1*(-state(end,2)+state(1,2))), ' m under pilot chute flight phase'])

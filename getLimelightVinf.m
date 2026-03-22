@@ -41,5 +41,10 @@ in respect to the vehicle based on the state vector that is given.
     u = v_body(1);
     w = v_body(2);
 
-    alpha = atan2(w, u);
+    if (theta > pi/2)
+        theta;
+    end
+
+    alpha = -atan2(w, u);
+
 end
