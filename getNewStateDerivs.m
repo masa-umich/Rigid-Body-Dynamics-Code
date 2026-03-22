@@ -1,4 +1,4 @@
-function [newStateDerivs, fParachute] = getNewStateDerivs(state, percentage, mass, Iyy, ff)
+function [newStateDerivs, fParachute] = getNewStateDerivs(state, percentage, mass, Iyy, ff, t_elapsed)
 
 % Extract states
 z = state(end,2);
@@ -9,7 +9,7 @@ theta = state(end,6);
 g = 9.81;
 [~, ~, rho, ~] = atmosphere(z);
 % Constants
-CDp = 1.60; % pilot parachute (estimation, 0.62-0.77)
+CDp = 1.60; % pilot parachute
 parAp = 1.29; % parachute reference area [m^2] (pilot parachute)
 parAd = 7.1; % drogue parachute
 parAm = 177; % main parachute
@@ -111,11 +111,11 @@ T = [ cos(theta)  -sin(theta);
 
 %disp(Fx + " xz para + grav " + Fz);
 
-[CoD, CoL] = getCoeff(theta);
+[CoD, CoL] = getCoeff(alpha);
 
-CoA = CoD*cos(alpha) - CoL*sin(alpha);
+CoA = CoD*cos(theta) - CoL*sin(theta);
 
-CoN = CoD*sin(alpha) + CoL*cos(alpha);
+CoN = CoD*sin(theta) + CoL*cos(theta);
 
 % RA is the reference Area of the rocket
 RA = pi * 0.32385^2;
@@ -168,9 +168,14 @@ CoM = 7.56 - (121.05 / 39.37);
 %disp("X: " + fParachute(1));
 %disp("Z: " + fParachute(2));
 
+% %Trying something here with projections
+% Fn_unit = [cos(theta+pi/2);sin(theta+pi/2)];
+% FNpara = norm(dot(fParachute,Fn_unit)*Fn_unit);
+
 FNpara = fParachute(1) * sin(theta) + fParachute(2) * cos(theta);
 
 disp("N: " + FNpara);
+disp("V_inf: " + vinf_unit_vec);
 
 % PD is the parachute distance from the tip of the nosecone
 PD = 70 / 39.37;
@@ -178,17 +183,28 @@ PD = 70 / 39.37;
 %Technically negative torque, but FN is negative because of negative CoL
 %from old coeff sheet
 Torque = (CoP - CoM) * FN;
+momentArm = CoM - PD;
+body_vec = momentArm.*[cos(theta);sin(theta);0];
 
 % Parachute forces after delay
 if (ff == false)
-    if (theta < pi / 2)
-        Torque = Torque + FNpara * PD;
-    else 
-        Torque = Torque + FNpara * PD;
+    r = body_vec;
+    F = fParachute(1:2);
+    Torque = Torque + (r(1)*F(2) - r(2)*F(1));
+    if (theta > pi/2)
+        theta;
+    end
+    if z < mainDeployAlt
+        if (t_elapsed < 10)
+            fParachute = fParachute.*((t_elapsed-2)/8); % 2x1
+        end
     end
     %display(fParachute(1));
     Fx = Fx + fParachute(1);
     Fz = Fz + fParachute(2);
+end
+if (ff == true)
+    fParachute = 0;
 end
 
 FA = Fx*cos(theta) + Fz*sin(theta);      % axial (along body x)
@@ -196,15 +212,21 @@ FN = -Fx*sin(theta) + Fz*cos(theta);     % normal (perp to body x)
 
 % Need to make sure that du and dw are solved right (might
 % need to add the Fa from parachute but not sure)
-du = FA/mass;
-dw = FN/mass;
-dq = Torque / Iyy; % Angular acceleration due to torque
+du = FA/mass + q*w;
+dw = FN/mass - q*u;
+
+% Update the angular acceleration to include damping
+dq = (Torque) / Iyy;
 
 % dx = u;
 % dz = w;
 
 dx =  u*cos(theta) - w*sin(theta);
 dz =  u*sin(theta) + w*cos(theta);
+
+if dx < 0
+    dx;
+end
 
 dtheta = q;
 
