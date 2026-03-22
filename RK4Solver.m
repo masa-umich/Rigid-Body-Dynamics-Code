@@ -7,11 +7,11 @@ if t > 1
     ff = false;
 end
 if z < (609.6 + 305)
-    ff = true;
+    %ff = true;
     t_elapsed = t_elapsed + dt;
-    if t_elapsed > 2
-        ff = false;
-    end
+    % if t_elapsed > 2
+    %     ff = false;
+    % end
 end
     [f0, ~] = getNewStateDerivs(state, percentage, mass, Iyy, ff, t_elapsed);
     %disp(f0);

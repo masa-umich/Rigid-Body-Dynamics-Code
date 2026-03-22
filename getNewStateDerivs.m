@@ -6,6 +6,12 @@ u = state(end,3);
 w = state(end,4);
 q = state(end,5);
 theta = state(end,6);
+
+% Extract Parachute Extraction states
+x_rel = state(end,7); % The distance the bag has been pulled out
+v_rel = state(end,8); % The relative velocity of the bag to the rocket
+
+
 g = 9.81;
 [~, ~, rho, ~] = atmosphere(z);
 % Constants
@@ -60,19 +66,33 @@ fParachute = -qinf* CDp * parAp * vinf_unit_vec;
 
 %% Compute Body Forces
 
+mainDeployAlt = 609.6 + 305;
+
+L = 15; % [m] Length of tether + deployment bag
+mass_p = 2.5; % [kg] Mass of the deployment bag
+
+% Default derivatives for the extraction states (no movement)
+dx_rel = 0; 
+dv_rel = 0;
+
 %Parachute force (in fixed frame)
 if z > (609.6 + 1524)
    fParachute = -qinf* CDp * parAp * vinf_unit_vec; % 2x1
 elseif z > (609.6 + 305) 
    fParachute = -qinf* CDp * parAd * vinf_unit_vec; % 2x1
-else
+elseif z <= mainDeployAlt && x_rel < L
+    ff = true;
+elseif x_rel >= L
+    % PHASE 3: MAIN PARACHUTE DEPLOYED
+    ff = false;
+    % Lock the relative distance so it doesn't integrate to infinity
+    dx_rel = 0;
+    dv_rel = 0;
+
+    % Calculate Parachute force
     fParachute = -qinf* CDp * parAm * vinf_unit_vec; % 2x1
 end
-
-
-
-% Define Main Deployment Altitude
-mainDeployAlt = 609.6 + 305; 
+ 
 
 % %% Compute Body Forces (Gradual increase in size)
 % 
@@ -191,14 +211,14 @@ if (ff == false)
     r = body_vec;
     F = fParachute(1:2);
     Torque = Torque + (r(1)*F(2) - r(2)*F(1));
-    if (theta > pi/2)
-        theta;
-    end
-    if z < mainDeployAlt
-        if (t_elapsed < 10)
-            fParachute = fParachute.*((t_elapsed-2)/8); % 2x1
-        end
-    end
+    % if (theta > pi/2)
+    %     theta;
+    % end
+    % if z < mainDeployAlt
+    %     if (t_elapsed < 10)
+    %         fParachute = fParachute.*((t_elapsed-2)/8); % 2x1
+    %     end
+    % end
     %display(fParachute(1));
     Fx = Fx + fParachute(1);
     Fz = Fz + fParachute(2);
@@ -224,11 +244,29 @@ dq = (Torque) / Iyy;
 dx =  u*cos(theta) - w*sin(theta);
 dz =  u*sin(theta) + w*cos(theta);
 
-if dx < 0
-    dx;
-end
+% if dx < 0
+%     dx;
+% end
 
 dtheta = q;
+
+if z <= mainDeployAlt && x_rel < L
+    % PHASE 2: EXTRACTION IN PROGRESS
+    % The drogue is pulling the bag out. 
+    
+    % 1. Acceleration of the bag (pulled by drogue drag)
+    % Assuming fParachute here is calculated using the DROGUE area
+    a_bag = norm(fParachute) / mass_p; 
+    
+    % 2. Acceleration of the rocket (along its flight path)
+    % You already calculated du and dw. We approximate axial acceleration.
+    a_rocket = du; 
+    
+    % 3. Relative kinematics
+    dv_rel = a_bag - a_rocket; % Rate of change of relative velocity
+    dx_rel = v_rel;            % Rate of change of relative distance
+
+end
 
 %disp("Normal force: " + FN);
 
@@ -262,7 +300,7 @@ dtheta = q;
 % dz = u * sin(stateTheta) + w * cos(stateTheta);
 
     
-newStateDerivs = [dx, dz, du, dw, dq, dtheta]; %row vector
+newStateDerivs = [dx, dz, du, dw, dq, dtheta, dx_rel, dv_rel]; %row vector
 end
 
 % Fins

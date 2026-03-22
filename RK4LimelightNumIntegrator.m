@@ -16,6 +16,8 @@ theta = 0; % pitch (rad)
 xp = 0; % x position in global coordinate system (m)
 zp = apogee; % z position in global coordinate system (m)
 t = 0 ;
+x_rel = 0; 
+v_rel = 0;
 [~, ~, rho, ~] = atmosphere(zp);
 
 % Wind for getVw
@@ -28,7 +30,7 @@ rArea = 2.368; % (m^2)
 D = 7.4; % (m)
 
 % Inital state vector
-state0 = [xp, zp, u, w, q, theta];
+state0 = [xp, zp, u, w, q, theta, x_rel, v_rel];
 state = state0;
 
 %Time after appogee recovery bay is deployed
@@ -88,7 +90,7 @@ ylabel('Force [N]')
 xlabel('x pos [m]')
 title('Force Graph')
 
-disp(['Terminal velocity in pilot chute phase is: ',num2str(min(state(:,4))) , ' m/s'])
+%disp(['Terminal velocity in pilot chute phase is: ',num2str(min(state(:,4))) , ' m/s'])
 disp(['Limelight descended ',num2str(1*(-state(end,2)+state(1,2))), ' m under pilot chute flight phase'])
 
 
