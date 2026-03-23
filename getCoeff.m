@@ -7,7 +7,7 @@ function [CoD, CoL] = getCoeff(radA)
         radA = 2*pi-radA;
     end
     AoA = round(rad2deg(abs(radA)));
-    M = readmatrix("/Users/shreyasgorre/Documents/MATLAB/Rigid-Body-Dynamics-Code/FlipSimDMNEW.csv");
+    M = readmatrix("C:\Users\hugoa\Rigid-Body-Dynamics-Code\FlipSimDMNEW.csv");
     D = M(:,3);
     L = M(:,4);
     A = M(:,7);
