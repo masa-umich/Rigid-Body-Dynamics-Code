@@ -6,10 +6,10 @@ format long g;
 farAlt = 609.6; %(m)
 
 % Apogee Input
-apogee = 10568; %(m)
+apogee = 10668; %(m)
 
 % Inputs
-u = 40; % x component of COM velo. body (change to fixed) coordinate system (m/s)
+u = 50; % x component of COM velo. body (change to fixed) coordinate system (m/s)
 w = 0; % z component of COM velo. body (change to fixed) coordinate system (m/s)
 q = 0; % y component of rotation rate body coordinate syatem (rad/s)
 theta = 0; % pitch (rad)
@@ -43,7 +43,7 @@ time(i,1) = t;
 t_elapsed = 0;
 
 f_ch = [];   % parachute load history [N]
-fP_dir = [0, 0];   % parachute load history [N]
+fP_dir = [];   % parachute load history [N]
 para_t = 0;
 %freefall
 while state(end,2) > farAlt
@@ -60,7 +60,7 @@ while state(end,2) > farAlt
     end
     [state(i+1,:),fP, t_elapsed] = RK4Solver(state(i,:),dt,percentage,mass,Iyy,t, t_elapsed);
     f_ch(i+1) = norm(fP);
-    fP_dir(i+1, :) = fP';
+    fP_dir = [fP_dir, (fP ./ norm(fP)];
     t = t+dt;
     i = i+1;
     time(i,1) = t;
@@ -108,20 +108,15 @@ disp('Playing and recording animation at accelerated speed...');
 
 % 1. Speed Control Settings
 fps = 30;                 % Standard smooth video framerate
-speedMultiplier = 2;      % 5x speed
+speedMultiplier = 5;      % 5x speed (Change to 2, 10, etc. as needed)
 dt_anim = speedMultiplier / fps; % Simulation time advanced per frame
 
 t_anim = time(1):dt_anim:time(end); 
-
 
 xp_anim = interp1(time, state(:,1), t_anim);
 zp_anim = interp1(time, state(:,2), t_anim);
 theta_anim = interp1(time, state(:,6), t_anim);
 x_rel_anim = interp1(time, state(:,7), t_anim); 
-
-% Interpolate Force Vectors
-fPx_anim = interp1(time, fP_dir(:,1), t_anim);
-fPz_anim = interp1(time, fP_dir(:,2), t_anim);
 
 % 2. Setup VISIBLE Figure (Do not resize window while running!)
 figAnim = figure('Name', 'Rocket Descent & Pitch Animation', 'Color', 'w', ...
@@ -151,7 +146,7 @@ tetherLine = plot(ax, NaN, NaN, 'k-', 'LineWidth', 1);
 canopyPlot = plot(ax, NaN, NaN, 'b-', 'LineWidth', 4); 
 
 % 3. Video Setup
-videoFilename = 'Limelight_Descent_2x_35kAPOGEE_new.mp4';
+videoFilename = 'Limelight_Descent_5x_35kAPOGEE.mp4';
 v = VideoWriter(videoFilename, 'MPEG-4'); 
 v.FrameRate = fps;                        
 open(v);                                  
@@ -200,7 +195,7 @@ for k = 1:length(t_anim)
         end
     end
     
-    % --- Apply Parachute Attachment Point Coordinates ---
+    % --- Apply Coordinates ---
     
     % Calculate the new attachment point (Halfway between center and nose)
     attachOffset = rocketLength / 4; 
@@ -213,31 +208,13 @@ for k = 1:length(t_anim)
         canopy_x = [NaN, NaN];
         canopy_z = [NaN, NaN];
     else
-        % 1. Extract the current force vector components
-        curr_fPx = fPx_anim(k);
-        curr_fPz = fPz_anim(k);
+        % Tether now connects to the new attachment point instead of x_tail/z_tail
+        tether_x = [x_attach, x_attach];
+        tether_z = [z_attach, z_attach + tetherLength];
         
-        % 2. Calculate the angle of the force
-        % If there is no force (e.g., freefall or exactly zero drag), default to straight up
-        if norm([curr_fPx, curr_fPz]) > 1e-3
-            para_angle = atan2(curr_fPz, curr_fPx);
-        else
-            para_angle = pi/2; 
-        end
-        
-        % 3. Calculate tether end point using the true force angle
-        tether_end_x = x_attach + tetherLength * cos(para_angle);
-        tether_end_z = z_attach + tetherLength * sin(para_angle);
-        
-        tether_x = [x_attach, tether_end_x];
-        tether_z = [z_attach, tether_end_z];
-        
-        % 4. Calculate canopy line (Perpendicular to the tether)
-        canopy_dx = (canopyWidth/2) * cos(para_angle + pi/2);
-        canopy_dz = (canopyWidth/2) * sin(para_angle + pi/2);
-        
-        canopy_x = [tether_end_x - canopy_dx, tether_end_x + canopy_dx];
-        canopy_z = [tether_end_z - canopy_dz, tether_end_z + canopy_dz];
+        % Canopy is centered directly above the new attachment point
+        canopy_x = [x_attach - canopyWidth/2, x_attach + canopyWidth/2];
+        canopy_z = [z_attach + tetherLength, z_attach + tetherLength];
     end
     
     % Update plot data

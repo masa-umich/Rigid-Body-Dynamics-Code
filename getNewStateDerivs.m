@@ -16,14 +16,10 @@ g = 9.81;
 [~, ~, rho, ~] = atmosphere(z);
 % Constants
 CDp = 1.60; % pilot parachute
+CDm = 1.60; % pilot parachute
 parAp = 1.29; % parachute reference area [m^2] (pilot parachute)
 parAd = 7.1; % drogue parachute
 parAm = 177; % main parachute
-% Below is the angle between the velocity vector and the x-axis
-% --- Parachute staging ---
-farAlt = 609.6;                 % FAR site altitude [m]
-pilotToDrogueAlt = farAlt + 1524; % example threshold [m]
-mainDeployAlt = farAlt + 305;     % your existing main deploy altitude [m]
 
 %% Compute freestream
 [qinf, vinf, vinf_vec, alpha] = getLimelightVinf(state, percentage);
@@ -35,91 +31,50 @@ else
     vinf_unit_vec = vinf_vec ./ norm(vinf_vec);   % keep 2×1
 end
 
-% % --- Choose stage + inflate main gradually ---
-% inflationDist = 100; % [m] main inflation distance (tune this)
-% 
-% if z > pilotToDrogueAlt
-%     CDch = CDp;
-%     Aeff = parAp;
-% 
-% elseif z > mainDeployAlt
-%     CDch = CDp;
-%     Aeff = parAd;
-% 
-% else
-%     % MAIN: ramp from drogue -> main
-%     CDch = CDp;
-% 
-%     distBelow = mainDeployAlt - z;                 % [m] how far below deploy
-%     frac = min(max(distBelow / inflationDist, 0), 1); % clamp 0..1
-% 
-%     % Smooth ramp (less numerical spike than linear)
-%     frac_smooth = 0.5 - 0.5*cos(pi*frac); % cosine ramp 0->1
-% 
-%     Aeff = parAd + (parAm - parAd)*frac_smooth;
-% end
-% 
-% % Parachute force in GLOBAL
-% fParachute = -qinf * CDch * Aeff * vinf_unit_vec;  % 2x1
-
 fParachute = -qinf* CDp * parAp * vinf_unit_vec;
 
 %% Compute Body Forces
 
 mainDeployAlt = 609.6 + 305;
 
-L = 15; % [m] Length of tether + deployment bag
-mass_p = 2.5; % [kg] Mass of the deployment bag
+L_d = 7; % [m] Length of drogue tethers
+mass_d = 0.013; % [kg] Mass of drogue parachute
+
+L_main = 6.1; % [m] Length of main tethers
+mass_p = 7.541; % [kg] Mass of main parachute
 
 % Default derivatives for the extraction states (no movement)
 dx_rel = 0; 
 dv_rel = 0;
 
+
 %Parachute force (in fixed frame)
 if z > (609.6 + 1524)
    fParachute = -qinf* CDp * parAp * vinf_unit_vec; % 2x1
-elseif z > (609.6 + 305) 
-   fParachute = -qinf* CDp * parAd * vinf_unit_vec; % 2x1
-elseif z <= mainDeployAlt && x_rel < L
+elseif z > mainDeployAlt && x_rel < L_d
     ff = true;
-elseif x_rel >= L
-    % PHASE 3: MAIN PARACHUTE DEPLOYED
+
+elseif z > mainDeployAlt && x_rel >= L_d
+   fParachute = -qinf* CDp * parAd * vinf_unit_vec; % 2x1
+
+   dx_rel = 0;
+   dv_rel = 0;
+
+elseif z <= mainDeployAlt && x_rel < L_main
+    ff = true;
+
+elseif x_rel >= L_main
     ff = false;
     % Lock the relative distance so it doesn't integrate to infinity
     dx_rel = 0;
     dv_rel = 0;
 
     % Calculate Parachute force
-    fParachute = -qinf* CDp * parAm * vinf_unit_vec; % 2x1
+    if ((t_elapsed-1.6) < 5)
+        CDm = CDp/5 * (t_elapsed-1.6);
+    end
+    fParachute = -qinf* CDm * parAm * vinf_unit_vec; % 2x1
 end
- 
-
-% %% Compute Body Forces (Gradual increase in size)
-% 
-% % Parachute force (in fixed frame)
-% if z > (609.6 + 1524)
-%    currentArea = parAp; 
-% elseif z > mainDeployAlt
-%    currentArea = parAd; 
-% else 
-%    % MAIN PARACHUTE LOGIC
-%    % Calculate how far below the deployment altitude we are
-%    distBelow = mainDeployAlt - z;
-% 
-%    % Define an inflation distance (e.g., takes 50 meters to fully inflate)
-%    % This prevents the area from snapping to 177 instantly
-%    inflationDist = 50; 
-% 
-%    if distBelow < inflationDist
-%        % Linear interpolation from Drogue Area to Main Area
-%        percentOpen = distBelow / inflationDist;
-%        currentArea = parAd + (parAm - parAd) * percentOpen;
-%    else
-%        currentArea = parAm;
-%    end
-% end
-% 
-% fParachute = -qinf * CDp * currentArea * vinf_unit_vec;
 
 % Body to global
 T = [ cos(theta)  -sin(theta);
@@ -250,7 +205,7 @@ dz =  u*sin(theta) + w*cos(theta);
 
 dtheta = q;
 
-if z <= mainDeployAlt && x_rel < L
+if z <= mainDeployAlt && x_rel < L_main
     % PHASE 2: EXTRACTION IN PROGRESS
     % The drogue is pulling the bag out. 
     
