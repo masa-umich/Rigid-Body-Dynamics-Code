@@ -8,8 +8,10 @@ q = state(end,5);
 theta = state(end,6);
 
 % Extract Parachute Extraction states
-x_rel = state(end,7); % The distance the bag has been pulled out
-v_rel = state(end,8); % The relative velocity of the bag to the rocket
+x_rel_d = state(end,7); % Drogue extraction distance
+v_rel_d = state(end,8); % Drogue relative velocity
+x_rel_m = state(end,9); % Main extraction distance
+v_rel_m = state(end,10); % Main relative velocity
 
 
 g = 9.81;
@@ -31,7 +33,7 @@ else
     vinf_unit_vec = vinf_vec ./ norm(vinf_vec);   % keep 2×1
 end
 
-fParachute = -qinf* CDp * parAp * vinf_unit_vec;
+%fParachute = -qinf* CDp * parAp * vinf_unit_vec;
 
 %% Compute Body Forces
 
@@ -44,34 +46,45 @@ L_main = 6.1; % [m] Length of main tethers
 mass_p = 7.541; % [kg] Mass of main parachute
 
 % Default derivatives for the extraction states (no movement)
-dx_rel = 0; 
-dv_rel = 0;
+dx_rel_m = 0; 
+dv_rel_m = 0;
+dx_rel_d = 0; 
+dv_rel_d = 0;
 
 
 %Parachute force (in fixed frame)
 if z > (609.6 + 1524)
    fParachute = -qinf* CDp * parAp * vinf_unit_vec; % 2x1
-elseif z > mainDeployAlt && x_rel < L_d
+
+elseif z > mainDeployAlt && x_rel_d < L_d
+    fParachute = -qinf* CDp * parAp * vinf_unit_vec; % 2x1
     ff = true;
 
-elseif z > mainDeployAlt && x_rel >= L_d
-   fParachute = -qinf* CDp * parAd * vinf_unit_vec; % 2x1
+elseif z > mainDeployAlt && x_rel_d >= L_d
+   ff = false;
 
-   dx_rel = 0;
-   dv_rel = 0;
+   % if ((t_elapsed) < 3)
+   %      CDm = CDp/3 * (t_elapsed);
+   % end
 
-elseif z <= mainDeployAlt && x_rel < L_main
+   fParachute = -qinf* CDm * parAd * vinf_unit_vec; % 2x1
+
+   dx_rel_d = 0;
+   dv_rel_d = 0;
+
+elseif z <= mainDeployAlt && x_rel_m < L_main
+    fParachute = -qinf* CDp * parAd * vinf_unit_vec; % 2x1 drogue
     ff = true;
 
-elseif x_rel >= L_main
+elseif x_rel_m >= L_main
     ff = false;
     % Lock the relative distance so it doesn't integrate to infinity
-    dx_rel = 0;
-    dv_rel = 0;
+    dx_rel_m = 0;
+    dv_rel_m = 0;
 
-    % Calculate Parachute force
-    if ((t_elapsed-1.6) < 5)
-        CDm = CDp/5 * (t_elapsed-1.6);
+    % % Calculate Parachute force
+    if ((t_elapsed) < 3)
+        CDm = CDp/3 * (t_elapsed);
     end
     fParachute = -qinf* CDm * parAm * vinf_unit_vec; % 2x1
 end
@@ -178,9 +191,9 @@ if (ff == false)
     Fx = Fx + fParachute(1);
     Fz = Fz + fParachute(2);
 end
-if (ff == true)
-    fParachute = 0;
-end
+% if (ff == true)
+%     fParachute = 0;
+% end
 
 FA = Fx*cos(theta) + Fz*sin(theta);      % axial (along body x)
 FN = -Fx*sin(theta) + Fz*cos(theta);     % normal (perp to body x)
@@ -205,11 +218,25 @@ dz =  u*sin(theta) + w*cos(theta);
 
 dtheta = q;
 
-if z <= mainDeployAlt && x_rel < L_main
-    % PHASE 2: EXTRACTION IN PROGRESS
-    % The drogue is pulling the bag out. 
+if z > mainDeployAlt && z < (609.6 + 1524) && x_rel_d < L_d
     
-    % 1. Acceleration of the bag (pulled by drogue drag)
+    % 1. Acceleration of the bag
+    % Assuming fParachute here is calculated using the DROGUE area
+    a_bag = norm(fParachute) / mass_d; 
+    
+    % 2. Acceleration of the rocket (along its flight path)
+    % You already calculated du and dw. We approximate axial acceleration.
+    a_rocket = du; 
+    
+    % 3. Relative kinematics
+    dv_rel_d = a_bag - a_rocket; % Rate of change of relative velocity
+    dx_rel_d = v_rel_d;            % Rate of change of relative distance
+
+end
+
+if z <= mainDeployAlt && x_rel_m < L_main
+    
+    % 1. Acceleration of the bag
     % Assuming fParachute here is calculated using the DROGUE area
     a_bag = norm(fParachute) / mass_p; 
     
@@ -218,8 +245,8 @@ if z <= mainDeployAlt && x_rel < L_main
     a_rocket = du; 
     
     % 3. Relative kinematics
-    dv_rel = a_bag - a_rocket; % Rate of change of relative velocity
-    dx_rel = v_rel;            % Rate of change of relative distance
+    dv_rel_m = a_bag - a_rocket; % Rate of change of relative velocity
+    dx_rel_m = v_rel_m;            % Rate of change of relative distance
 
 end
 
@@ -254,8 +281,12 @@ end
 % dx = u * cos(stateTheta) - w * sin(stateTheta); 
 % dz = u * sin(stateTheta) + w * cos(stateTheta);
 
+if (ff == true)
+    fParachute = 0;
+end
+
     
-newStateDerivs = [dx, dz, du, dw, dq, dtheta, dx_rel, dv_rel]; %row vector
+newStateDerivs = [dx, dz, du, dw, dq, dtheta, dx_rel_d, dv_rel_d, dx_rel_m, dv_rel_m]; %row vector
 end
 
 % Fins

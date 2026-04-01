@@ -30,7 +30,7 @@ rArea = 2.368; % (m^2)
 D = 7.4; % (m)
 
 % Inital state vector
-state0 = [xp, zp, u, w, q, theta, x_rel, v_rel];
+state0 = [xp, zp, u, w, q, theta, x_rel, v_rel, x_rel, v_rel];
 state = state0;
 
 %Time after appogee recovery bay is deployed
@@ -51,12 +51,12 @@ while state(end,2) > farAlt
     dt = 0.1;
     if(state(end, 2) < 609.6 +305) 
         dt = 0.001;
-    end
-    if(t_elapsed > 2) 
-        dt = 0.001; 
-    end
-    if(t_elapsed > 4)
-        dt = 0.1;
+        if(t_elapsed > 2) 
+            dt = 0.001; 
+        end
+        if(t_elapsed > 4)
+            dt = 0.1;
+        end
     end
     [state(i+1,:),fP, t_elapsed] = RK4Solver(state(i,:),dt,percentage,mass,Iyy,t, t_elapsed);
     f_ch(i+1) = norm(fP);
@@ -108,7 +108,7 @@ disp('Playing and recording animation at accelerated speed...');
 
 % 1. Speed Control Settings
 fps = 30;                 % Standard smooth video framerate
-speedMultiplier = 2;      % 5x speed
+speedMultiplier = 10;      % 5x speed
 dt_anim = speedMultiplier / fps; % Simulation time advanced per frame
 
 t_anim = time(1):dt_anim:time(end); 
