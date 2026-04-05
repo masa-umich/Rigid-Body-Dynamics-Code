@@ -152,7 +152,8 @@ Fz = Fz + forces(2);
 % direction of motion
 
 CoP = 5.6;
-CoM = 7.56 - (121.05 / 39.37); 
+%CoM = 7.56 - (121.05 / 39.37); 
+CoM = 3.048;
 %disp("X: " + fParachute(1));
 %disp("Z: " + fParachute(2));
 
