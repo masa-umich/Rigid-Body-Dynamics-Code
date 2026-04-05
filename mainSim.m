@@ -1,0 +1,110 @@
+%% state vector form: [xp,zp,u,w,q,theta, x_rel_d, v_rel_d, x_rel_m, v_rel_m]
+
+close all; clear; clc;
+format long g;
+% FAR Launch Site Altutude
+farAlt = 609.6; %(m)
+mainDeployment = (farAlt + 305);
+
+% Apogee Input
+apogee = 10568; %(m)
+
+% Inputs
+
+q = 0; % y component of rotation rate body coordinate syatem (rad/s)
+theta0 = pi/4; % pitch (rad)
+xp = 0; % x position in global coordinate system (m)
+zp = mainDeployment + 10; % z position in global coordinate system (m)
+t = 0 ;
+x_rel_d = 7; 
+v_rel_d = 0;
+x_rel = 0; 
+v_rel = 0;
+[~, ~, rho, ~] = atmosphere(zp);
+
+v_descent = 20; 
+u0 = -v_descent * sin(theta0);
+w0 = -v_descent * cos(theta0);
+
+% Wind for getVw
+percentage = '0';
+
+% Limelight Parameters
+mass = 231; % vehicle dry mass (kg)
+Iyy = 1750; % vehicle moment of inertia about the y-axis (kg*m^2) NOT REAL
+rArea = 2.368; % (m^2)
+D = 7.4; % (m)
+
+% Inital state vector
+state0 = [xp, zp, u0, w0, q, theta0, x_rel_d, v_rel_d, x_rel, v_rel];
+state = state0;
+
+%Time after appogee recovery bay is deployed
+timeAfterAppogee = 2; %(s)
+
+%Integrating for freefall
+
+i = 1;
+time(i,1) = t;
+t_elapsed = 0;
+
+f_ch = [];   % parachute load history [N]
+fP_dir = [0, 0];   % parachute load history [N]
+para_t = 0;
+%freefall
+while t < 5
+% while time(i) < 100
+    dt = 0.1;
+    if(state(end, 2) < 609.6 +305) 
+        dt = 0.001;
+        if(t_elapsed > 2) 
+            dt = 0.001; 
+        end
+        if(t_elapsed > 4)
+            dt = 0.1;
+        end
+    end
+    [state(i+1,:),fP, t_elapsed] = RK4Solver(state(i,:),dt,percentage,mass,Iyy,t, t_elapsed);
+    f_ch(i+1) = norm(fP);
+    fP_dir(i+1, :) = fP';
+    t = t+dt;
+    i = i+1;
+    time(i,1) = t;
+    
+end
+
+figure(1)
+subplot(1,2,1)
+plot(time,rad2deg(state(:,6)));
+ylabel('Theta [deg]')
+xlabel('Time (s)')
+title('Theta [deg] i.r.t. horiz vs Time')
+
+subplot(1,2,2)
+plot(time,state(:,2));
+ylabel('Altitude [m]')
+xlabel('Time (s)')
+title('Altitude vs Time')
+
+figure(2)
+plot(state(:,1), state(:,2))
+ylabel('y pos [m]')
+xlabel('x pos [m]')
+title('Absolute position')
+
+figure(3)
+plot(time, f_ch)
+ylabel('Force [N]')
+xlabel('Time [s]')
+title('Force Graph')
+
+%disp(['Terminal velocity in pilot chute phase is: ',num2str(min(state(:,4))) , ' m/s'])
+disp(['Limelight descended ',num2str(1*(-state(end,2)+state(1,2))), ' m under pilot chute flight phase'])
+
+
+[maxLoad, idx] = max(f_ch);
+
+disp(['MAX parachute load = ', num2str(maxLoad), ' N'])
+disp(['Occurs at t = ', num2str(time(idx)), ' s'])
+disp(['Occurs at t = ', num2str(time(idx) - (t - t_elapsed)), ' s after reaching main height'])
+disp(['Altitude at max load = ', num2str(state(idx,2)), ' m'])
