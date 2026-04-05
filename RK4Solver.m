@@ -6,6 +6,12 @@ ff = true;
 if t > 1
     ff = false;
 end
+% if z < (609.6 + 1524) && z > (609.6 + 305)
+%     %ff = true;
+%     t_elapsed = t_elapsed + dt;
+%     % if t_elapsed > 2
+%     %     ff = false;
+%     % end
 if z < (609.6 + 305)
     %ff = true;
     t_elapsed = t_elapsed + dt;
