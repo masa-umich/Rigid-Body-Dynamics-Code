@@ -1,4 +1,4 @@
-function [output] = mainSim(input)
+function [force_load, pitch_angle] = mainSim(qi, vi, thetai)
 %% state vector form: [xp,zp,u,w,q,theta, x_rel_d, v_rel_d, x_rel_m, v_rel_m]
 
 format long g;
@@ -12,7 +12,7 @@ apogee = 10568; %(m)
 % Inputs
 
 q = input(1); % y component of rotation rate body coordinate syatem (rad/s)
-theta0 = input(3); % pitch (rad)
+theta0 = thetai; % pitch (rad)
 xp = 0; % x position in global coordinate system (m)
 zp = mainDeployment; % z position in global coordinate system (m)
 t = 0 ;
@@ -22,7 +22,7 @@ x_rel = 0;
 v_rel = 0;
 [~, ~, rho, ~] = atmosphere(zp);
 
-v_descent = input(2); 
+v_descent = vi; 
 u0 = -v_descent * sin(theta0);
 w0 = -v_descent * cos(theta0);
 
@@ -48,11 +48,11 @@ i = 1;
 time(i,1) = t;
 t_elapsed = 0;
 
-f_ch = [0];   % force load history [N]
+f_ch = [];   % parachute load history [N]
 fP_dir = [0, 0];   % parachute load history [N]
 para_t = 0;
 %freefall
-while t < 5
+while t < 6
 % while time(i) < 100
 % while state(end,2) > farAlt
     dt = 0.1;
@@ -66,7 +66,7 @@ while t < 5
         end
     end
     [state(i+1,:),fP, t_elapsed] = RK4Solver(state(i,:),dt,percentage,mass,Iyy,t, t_elapsed);
-    f_ch(i+1,1) = norm(fP);
+    f_ch(i+1) = norm(fP);
     fP_dir(i+1, :) = fP';
     t = t+dt;
     i = i+1;
@@ -76,8 +76,6 @@ end
 
 force_load = f_ch;
 pitch_angle = rad2deg(state(:,6));
-
-output = [force_load(:), pitch_angle(:), time(:)];
 
 % figure(1)
 % subplot(1,2,1)

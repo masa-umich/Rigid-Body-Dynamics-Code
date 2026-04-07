@@ -83,8 +83,8 @@ elseif x_rel_m >= L_main
     dv_rel_m = 0;
 
     % % Calculate Parachute force
-    if ((t_elapsed) < 3)
-        CDm = CDp/3 * (t_elapsed);
+    if ((t_elapsed + 0.1) < 2.5)
+        CDm = CDp/2.5 * (t_elapsed+0.1);
     end
     fParachute = -qinf* CDm * parAm * vinf_unit_vec; % 2x1
 end
@@ -163,7 +163,7 @@ CoM = 3.048;
 
 FNpara = fParachute(1) * sin(theta) + fParachute(2) * cos(theta);
 
-disp("N: " + FNpara);
+% disp("N: " + FNpara);
 disp("V_inf: " + vinf_unit_vec);
 
 % PD is the parachute distance from the tip of the nosecone

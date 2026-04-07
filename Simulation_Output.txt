@@ -1,0 +1,11 @@
+===== Shreyas and Hugo || Monte Carlo Simulation =====
+
+The max load remains below 9007.94 with a confidence of 89 percent.
+The max pitch angle remains below 48.7366 deg with a confidence of 89 percent.
+
+The max load remains below 9512.10 with a confidence of 94 percent.
+The max pitch angle remains below 56.7306 deg with a confidence of 94 percent.
+
+The max load remains below 10413.82 with a confidence of 99 percent.
+The max pitch angle remains below 78.3490 deg with a confidence of 99 percent.
+
